@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: Guarantee
+  datasource:
+    url: jdbc:postgresql://localhost:5432/guarantee
+    username: postgres
+    password: postgres
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html

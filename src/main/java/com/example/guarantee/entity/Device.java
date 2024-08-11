@@ -16,5 +16,4 @@ public class Device {
   private int serialNumber;
   private String model;
   private String brand;
-
 }

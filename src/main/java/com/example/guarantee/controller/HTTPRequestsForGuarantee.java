@@ -1,31 +1,31 @@
 package com.example.guarantee.controller;
 
-import com.example.guarantee.dto.DeviceDTO;
-import com.example.guarantee.dto.WarrantyDTO;
+import com.example.guarantee.dto.DeviceDto;
+import com.example.guarantee.dto.WarrantyDto;
 import com.example.guarantee.entity.Device;
 import com.example.guarantee.entity.Warranty;
 import com.example.guarantee.repository.DeviceRepository;
 import com.example.guarantee.repository.WarrantyRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 @RestController
+@RequestMapping("/api/warranty")
+@RequiredArgsConstructor
 public class HTTPRequestsForGuarantee {
 
     private final DeviceRepository deviceRepository;
     private final WarrantyRepository warrantyRepository;
 
-    public HTTPRequestsForGuarantee(DeviceRepository deviceRepository, WarrantyRepository warrantyRepository) {
-        this.deviceRepository = deviceRepository;
-        this.warrantyRepository = warrantyRepository;
-    }
-
     @PostMapping("/addNewDevice")
     @ResponseStatus(HttpStatus.OK)
-    public Device addNewDevice(@RequestBody DeviceDTO deviceDTO) {
-        Device device = dtoToDevice(deviceDTO);
+    public Device addNewDevice(@RequestBody DeviceDto deviceDto) {
+        Device device = dtoToDevice(deviceDto);
         return deviceRepository.save(device);
     }
 
@@ -38,11 +38,16 @@ public class HTTPRequestsForGuarantee {
     @GetMapping("/updateBrandOfDevice/{id}/{brand}")
     @ResponseStatus(HttpStatus.OK)
     public void updateBrandOfDevice(@PathVariable Long id, @PathVariable String brand) {
-        Device device = deviceRepository.findById(id).orElse(null);
-        if (device != null) {
-            device.setBrand(brand);
-            deviceRepository.save(device);
+        Optional<Device> device = deviceRepository.findDeviceById(id);
+        //buna bak
+
+        if (device.isPresent()) {
+            device.get().setBrand(brand);
+            deviceRepository.save(device.get());
+        }else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
+        //Optional öğren
     }
 
 
@@ -59,11 +64,11 @@ public class HTTPRequestsForGuarantee {
 
     @PostMapping("/addGuaranteeToProduct/{productId}")
     @ResponseStatus(HttpStatus.OK)
-    public Warranty addWarranty(@RequestBody WarrantyDTO warrantyDTO, @PathVariable long productId) {
+    public Warranty addWarranty(@RequestBody WarrantyDto warrantyDto, @PathVariable long productId) {
         Device device = deviceRepository.findById(productId).orElse(null);
 
         if (device != null) {
-            Warranty warranty = dtoToWarranty(warrantyDTO);
+            Warranty warranty = dtoToWarranty(warrantyDto);
             warranty.setDevice(device);
             /* check date with guaranteeTime
              * if needed update status of warranty  */
@@ -77,7 +82,8 @@ public class HTTPRequestsForGuarantee {
         warrantyRepository.deleteById(id);
     }
 
-    public Warranty dtoToWarranty(WarrantyDTO warrantyDTO) {
+    // service map
+    public Warranty dtoToWarranty(WarrantyDto warrantyDTO) {
         Warranty warranty = new Warranty();
         warranty.setGuaranteeTime(warrantyDTO.getGuaranteeTime());
         warranty.setWarrantyStatus(true);
@@ -86,7 +92,8 @@ public class HTTPRequestsForGuarantee {
         return warranty;
     }
 
-    public Device dtoToDevice(DeviceDTO deviceDTO) {
+    //service
+    public Device dtoToDevice(DeviceDto deviceDTO) {
         Device device = new Device();
         device.setBrand(deviceDTO.getBrand());
         device.setModel(deviceDTO.getModel());
