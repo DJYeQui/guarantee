@@ -61,8 +61,6 @@ public class HTTPRequestsForGuarantee {
             /* check date with guaranteeTime
              * if needed update status of warranty  */
             return warrantyRepository.save(warranty);
-        } else {
-            //System.out.println("no devices with that id");
         }
         return null;
     }
