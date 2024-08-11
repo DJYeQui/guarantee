@@ -1,5 +1,7 @@
 package com.example.guarantee.controller;
 
+import com.example.guarantee.dto.DeviceDTO;
+import com.example.guarantee.dto.WarrantyDTO;
 import com.example.guarantee.entity.Device;
 import com.example.guarantee.entity.Warranty;
 import com.example.guarantee.repository.DeviceRepository;
@@ -22,7 +24,8 @@ public class HTTPRequestsForGuarantee {
 
     @PostMapping("/addNewDevice")
     @ResponseStatus(HttpStatus.OK)
-    public Device addNewDevice(@RequestBody Device device) {
+    public Device addNewDevice(@RequestBody DeviceDTO deviceDTO) {
+        Device device = dtoToDevice(deviceDTO);
         return deviceRepository.save(device);
     }
 
@@ -56,17 +59,38 @@ public class HTTPRequestsForGuarantee {
 
     @PostMapping("/addGuaranteeToProduct/{productId}")
     @ResponseStatus(HttpStatus.OK)
-    public Warranty addWarrenty(@RequestBody Warranty warranty, @PathVariable long productId) {
+    public Warranty addWarranty(@RequestBody WarrantyDTO warrantyDTO, @PathVariable long productId) {
         Device device = deviceRepository.findById(productId).orElse(null);
+
         if (device != null) {
+            Warranty warranty = dtoToWarranty(warrantyDTO);
             warranty.setDevice(device);
-            warranty.setPurchasedDate(String.valueOf(LocalDate.now()));
             /* check date with guaranteeTime
              * if needed update status of warranty  */
             return warrantyRepository.save(warranty);
-        } else {
-            //System.out.println("no devices with that id");
         }
         return null;
+    }
+
+    @DeleteMapping("/deleteGuarantee/{id}")
+    public void deleteGuarantee(@PathVariable long id) {
+        warrantyRepository.deleteById(id);
+    }
+
+    public Warranty dtoToWarranty(WarrantyDTO warrantyDTO) {
+        Warranty warranty = new Warranty();
+        warranty.setGuaranteeTime(warrantyDTO.getGuaranteeTime());
+        warranty.setWarrantyStatus(true);
+        warranty.setPurchasedDate(String.valueOf(LocalDate.now()));
+        // device is not defined
+        return warranty;
+    }
+
+    public Device dtoToDevice(DeviceDTO deviceDTO) {
+        Device device = new Device();
+        device.setBrand(deviceDTO.getBrand());
+        device.setModel(deviceDTO.getModel());
+        device.setSerialNumber(deviceDTO.getSerialNumber());
+        return device;
     }
 }
