@@ -7,6 +7,8 @@ import com.example.guarantee.repository.WarrantyRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+
 @RestController
 public class HTTPRequestsForGuarantee {
 
@@ -58,6 +60,7 @@ public class HTTPRequestsForGuarantee {
         Device device = deviceRepository.findById(productId).orElse(null);
         if (device != null) {
             warranty.setDevice(device);
+            warranty.setPurchasedDate(String.valueOf(LocalDate.now()));
             /* check date with guaranteeTime
              * if needed update status of warranty  */
             return warrantyRepository.save(warranty);
